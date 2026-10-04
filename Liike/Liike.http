@@ -1,0 +1,6 @@
+@Liike_HostAddress = http://localhost:5015
+
+GET {{Liike_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

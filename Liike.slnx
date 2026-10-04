@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Liike/Liike.csproj" />
+  <Project Path="Liike.Application/Liike.Application.csproj" />
+  <Project Path="Liike.Domain/Liike.Domain.csproj" />
+  <Project Path="Liike.Infrastructure/Liike.Infrastructure.csproj" />
+</Solution>

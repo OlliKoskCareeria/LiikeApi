@@ -1,0 +1,74 @@
+# .NET build and test output
+**/bin/
+**/obj/
+**/artifacts/
+**/TestResults/
+**/packages/
+*.trx
+*.coverage
+*.coveragexml
+*.pdb
+*.dll
+*.exe
+
+# Visual Studio and other IDE state
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Local launch and environment-specific application settings
+**/Properties/launchSettings.json
+**/appsettings.*.json
+!**/appsettings.example.json
+.env
+.env.*
+!.env.example
+local.settings.json
+
+# Secret files and local credentials
+**/secrets.json
+**/secrets.*.json
+**/*.secrets.json
+*.secret
+*.credentials
+
+# Certificates and signing/private keys
+*.pfx
+*.p12
+*.key
+*.pem
+*.crt
+*.cer
+*.snk
+
+# Azure local state and publish profiles
+.azure/
+**/Properties/PublishProfiles/
+*.publishsettings
+*.azurePubxml
+
+# PostgreSQL local credentials, data, and backups
+.pgpass
+.pg_service.conf
+pgdata/
+postgres-data/
+*.dump
+*.backup
+*.bak
+
+# Logs and temporary files
+logs/
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Operating system files
+.DS_Store
+Thumbs.db
