@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!-- Enables the built-in Development User Secrets configuration provider. -->
     <UserSecretsId>Liike-Api-6f8c4ac1-6abf-487e-8cb4-fc8e5ae8b54b</UserSecretsId>
   </PropertyGroup>

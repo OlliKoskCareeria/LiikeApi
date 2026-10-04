@@ -1,4 +1,6 @@
+using Liike.Application.Services;
 using Liike.Infrastructure.Persistence;
+using Liike.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,6 +22,9 @@ public static class DependencyInjection
         }
 
         services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
+        services.AddScoped<IPublicEventService, PublicEventService>();
+        services.AddScoped<IOrganizerEventService, OrganizerEventService>();
+        services.AddScoped<IOrganizerService, OrganizerService>();
 
         return services;
     }

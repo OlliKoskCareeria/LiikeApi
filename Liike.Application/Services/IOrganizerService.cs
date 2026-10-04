@@ -4,6 +4,9 @@ namespace Liike.Application.Services;
 
 public interface IOrganizerService
 {
+    Task<IReadOnlyList<Organizer>> GetAllAsync(
+        CancellationToken cancellationToken = default);
+
     Task<Organizer> CreateByAdministratorAsync(
         Organizer organizer,
         CancellationToken cancellationToken = default);
@@ -25,5 +28,9 @@ public interface IOrganizerService
     Task<bool> SetActiveAsync(
         Guid organizerId,
         bool isActive,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> DeleteByAdministratorAsync(
+        Guid organizerId,
         CancellationToken cancellationToken = default);
 }
