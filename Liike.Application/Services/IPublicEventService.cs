@@ -4,6 +4,12 @@ namespace Liike.Application.Services;
 
 public interface IPublicEventService
 {
+    Task<IReadOnlyList<(SportEvent Event, double DistanceKilometers)>> SearchNearbyPublishedAsync(
+        double latitude,
+        double longitude,
+        double? radiusKilometers = null,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<SportEvent>> SearchPublishedAsync(
         string? municipality = null,
         SportCategory? category = null,

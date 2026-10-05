@@ -78,6 +78,36 @@ public sealed class SportEventController(
         }
     }
 
+    /// <summary>Gets published events ordered by distance from the supplied coordinates.</summary>
+    [HttpGet("nearby")]
+    [ProducesResponseType(typeof(IReadOnlyList<NearbySportEventDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<IReadOnlyList<NearbySportEventDto>>> GetNearbyPublished(
+        [FromQuery] double latitude,
+        [FromQuery] double longitude,
+        [FromQuery] double? radiusKilometers = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var events = await publicEventService.SearchNearbyPublishedAsync(
+                latitude,
+                longitude,
+                radiusKilometers,
+                cancellationToken);
+
+            return Ok(events.Select(result => new NearbySportEventDto
+            {
+                Event = ToDto(result.Event),
+                DistanceKilometers = result.DistanceKilometers
+            }).ToList());
+        }
+        catch (ArgumentException)
+        {
+            return BadRequest();
+        }
+    }
+
     /// <summary>Gets a published event by its identifier.</summary>
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(SportEventDto), StatusCodes.Status200OK)]

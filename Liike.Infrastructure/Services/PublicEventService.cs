@@ -7,6 +7,61 @@ namespace Liike.Infrastructure.Services;
 
 public sealed class PublicEventService(ApplicationDbContext dbContext) : IPublicEventService
 {
+    public async Task<IReadOnlyList<(SportEvent Event, double DistanceKilometers)>> SearchNearbyPublishedAsync(
+        double latitude,
+        double longitude,
+        double? radiusKilometers = null,
+        CancellationToken cancellationToken = default)
+    {
+        ValidateCoordinates(latitude, longitude);
+
+        if (radiusKilometers.HasValue &&
+            (!double.IsFinite(radiusKilometers.Value) || radiusKilometers.Value < 0))
+        {
+            throw new ArgumentOutOfRangeException(nameof(radiusKilometers));
+        }
+
+        const double earthRadiusKilometers = 6371d;
+        var originLatitudeRadians = ToRadians(latitude);
+        var originLongitudeRadians = ToRadians(longitude);
+
+        var query = dbContext.SportEvents
+            .AsNoTracking()
+            .Where(sportEvent => sportEvent.IsPublished &&
+                                 sportEvent.Latitude.HasValue &&
+                                 sportEvent.Longitude.HasValue)
+            .Include(sportEvent => sportEvent.Organizer)
+            .Include(sportEvent => sportEvent.Tags)
+            .Select(sportEvent => new
+            {
+                Event = sportEvent,
+                DistanceKilometers = earthRadiusKilometers * 2d * Math.Asin(
+                    Math.Sqrt(
+                        Math.Min(
+                            1d,
+                            Math.Max(
+                                0d,
+                                Math.Pow(Math.Sin((sportEvent.Latitude!.Value * Math.PI / 180d - originLatitudeRadians) / 2d), 2d) +
+                                Math.Cos(originLatitudeRadians) *
+                                Math.Cos(sportEvent.Latitude.Value * Math.PI / 180d) *
+                                Math.Pow(Math.Sin((sportEvent.Longitude!.Value * Math.PI / 180d - originLongitudeRadians) / 2d), 2d)))))
+            });
+
+        if (radiusKilometers.HasValue)
+        {
+            query = query.Where(result => result.DistanceKilometers <= radiusKilometers.Value);
+        }
+
+        var results = await query
+            .OrderBy(result => result.DistanceKilometers)
+            .ThenBy(result => result.Event.Id)
+            .ToListAsync(cancellationToken);
+
+        return results
+            .Select(result => (result.Event, result.DistanceKilometers))
+            .ToList();
+    }
+
     public async Task<IReadOnlyList<SportEvent>> SearchPublishedAsync(
         string? municipality = null,
         SportCategory? category = null,
@@ -94,4 +149,19 @@ public sealed class PublicEventService(ApplicationDbContext dbContext) : IPublic
             .Include(sportEvent => sportEvent.Tags)
             .SingleOrDefaultAsync(cancellationToken);
     }
+
+    private static void ValidateCoordinates(double latitude, double longitude)
+    {
+        if (!double.IsFinite(latitude) || latitude is < -90 or > 90)
+        {
+            throw new ArgumentOutOfRangeException(nameof(latitude));
+        }
+
+        if (!double.IsFinite(longitude) || longitude is < -180 or > 180)
+        {
+            throw new ArgumentOutOfRangeException(nameof(longitude));
+        }
+    }
+
+    private static double ToRadians(double degrees) => degrees * Math.PI / 180d;
 }
