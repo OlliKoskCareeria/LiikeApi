@@ -34,7 +34,7 @@ public sealed class UpdateSportEventDto
     [StringLength(300)]
     public required string Address { get; init; }
 
-    [Range(typeof(decimal), "0", "9999999999.99")]
+    [Range(typeof(decimal), "0", "9999999999.99", ParseLimitsInInvariantCulture = true)]
     public decimal? Price { get; init; }
 
     public string? PriceDescription { get; init; }

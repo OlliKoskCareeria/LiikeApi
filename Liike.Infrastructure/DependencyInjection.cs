@@ -22,6 +22,12 @@ public static class DependencyInjection
         }
 
         services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
+        services.AddHttpClient<NominatimGeocodingService>(client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(10);
+        });
+        services.AddScoped<IGeocodingService>(serviceProvider =>
+            serviceProvider.GetRequiredService<NominatimGeocodingService>());
         services.AddScoped<IPublicEventService, PublicEventService>();
         services.AddScoped<IOrganizerEventService, OrganizerEventService>();
         services.AddScoped<IOrganizerService, OrganizerService>();

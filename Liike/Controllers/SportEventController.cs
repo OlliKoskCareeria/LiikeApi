@@ -258,6 +258,7 @@ public sealed class SportEventController(
 
     private static SportEventDto ToDto(SportEvent sportEvent)
     {
+        
         return new SportEventDto
         {
             Id = sportEvent.Id,

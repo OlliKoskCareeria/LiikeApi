@@ -84,10 +84,18 @@ public sealed class OrganizerEventService(
             throw new InvalidOperationException("An inactive organizer cannot update events.");
         }
 
-        var coordinates = await GeocodeAsync(changes, cancellationToken);
+        var locationChanged =
+            !string.Equals(entity.Municipality, changes.Municipality, StringComparison.Ordinal) ||
+            !string.Equals(entity.Address, changes.Address, StringComparison.Ordinal);
+
+        if (locationChanged)
+        {
+            var coordinates = await GeocodeAsync(changes, cancellationToken);
+            entity.Latitude = coordinates.Latitude;
+            entity.Longitude = coordinates.Longitude;
+        }
+
         CopyEditableFields(entity, changes);
-        entity.Latitude = coordinates.Latitude;
-        entity.Longitude = coordinates.Longitude;
 
         dbContext.SportEventTags.RemoveRange(entity.Tags);
         entity.Tags = CreateTags(changes.Tags);
