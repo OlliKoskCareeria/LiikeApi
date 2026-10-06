@@ -1,5 +1,11 @@
 namespace Liike.Domain;
 
+public enum AccountRole
+{
+    Organizer = 1,
+    Admin = 2
+}
+
 public enum OrganizerType
 {
     Unspecified = 0,

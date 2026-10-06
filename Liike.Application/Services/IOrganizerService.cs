@@ -9,6 +9,7 @@ public interface IOrganizerService
 
     Task<Organizer> CreateByAdministratorAsync(
         Organizer organizer,
+        string temporaryPassword,
         CancellationToken cancellationToken = default);
 
     Task<Organizer?> GetByIdAsync(
@@ -32,5 +33,19 @@ public interface IOrganizerService
 
     Task<bool> DeleteByAdministratorAsync(
         Guid organizerId,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> SetTemporaryPasswordAsync(
+        Guid organizerId,
+        string temporaryPassword,
+        CancellationToken cancellationToken = default);
+
+    Task<int?> GetEventCountAsync(
+        Guid organizerId,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> DeleteOwnAccountAsync(
+        Guid organizerId,
+        int expectedEventCount,
         CancellationToken cancellationToken = default);
 }

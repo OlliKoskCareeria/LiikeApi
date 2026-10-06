@@ -11,6 +11,8 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     public DbSet<SportEventTag> SportEventTags => Set<SportEventTag>();
 
+    public DbSet<UserAccount> UserAccounts => Set<UserAccount>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

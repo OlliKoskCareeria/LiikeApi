@@ -9,8 +9,13 @@
   <ItemGroup>
 	<PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
 	<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
+	<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.1.2" />
 	<ProjectReference Include="..\Liike.Application\Liike.Application.csproj" />
 	<ProjectReference Include="..\Liike.Domain\Liike.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
 </Project>

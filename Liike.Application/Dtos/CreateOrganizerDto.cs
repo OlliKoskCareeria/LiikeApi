@@ -17,6 +17,10 @@ public sealed class CreateOrganizerDto
     [StringLength(320)]
     public required string Email { get; init; }
 
+    [Required]
+    [StringLength(128, MinimumLength = 12)]
+    public required string TemporaryPassword { get; init; }
+
     [StringLength(32)]
     public string? PhoneNumber { get; init; }
 

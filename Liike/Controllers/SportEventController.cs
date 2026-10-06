@@ -1,7 +1,10 @@
 using Liike.Application.Dtos;
 using Liike.Application.Services;
 using Liike.Domain;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Liike.Controllers;
 
@@ -20,6 +23,8 @@ public sealed class SportEventController(
     /// e.g., for administrative purposes.
     /// </remarks>
     [HttpGet("all")]
+    [AllowAnonymous]
+    [EnableRateLimiting("PublicSearch")]
     [ProducesResponseType(typeof(IReadOnlyList<SportEventDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<IReadOnlyList<SportEventDto>>> GetAllPublishedWithoutFilters(
@@ -44,6 +49,8 @@ public sealed class SportEventController(
 
     /// <summary>Gets published events with optional filters and pagination.</summary>
     [HttpGet]
+    [AllowAnonymous]
+    [EnableRateLimiting("PublicSearch")]
     [ProducesResponseType(typeof(IReadOnlyList<SportEventDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<IReadOnlyList<SportEventDto>>> GetAllPublished(
@@ -80,6 +87,8 @@ public sealed class SportEventController(
 
     /// <summary>Gets published events ordered by distance from the supplied coordinates.</summary>
     [HttpGet("nearby")]
+    [AllowAnonymous]
+    [EnableRateLimiting("PublicSearch")]
     [ProducesResponseType(typeof(IReadOnlyList<NearbySportEventDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<IReadOnlyList<NearbySportEventDto>>> GetNearbyPublished(
@@ -110,6 +119,8 @@ public sealed class SportEventController(
 
     /// <summary>Gets a published event by its identifier.</summary>
     [HttpGet("{id:guid}")]
+    [AllowAnonymous]
+    [EnableRateLimiting("PublicSearch")]
     [ProducesResponseType(typeof(SportEventDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -124,29 +135,49 @@ public sealed class SportEventController(
         return sportEvent is null ? NotFound() : Ok(ToDto(sportEvent));
     }
 
+    /// <summary>Gets events owned by the authenticated organizer.</summary>
+    [HttpGet("mine")]
+    [Authorize(Policy = "Organizer")]
+    [EnableRateLimiting("Organizer")]
+    [ProducesResponseType(typeof(IReadOnlyList<SportEventDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<SportEventDto>>> GetOwnEvents(
+        CancellationToken cancellationToken)
+    {
+        var organizerId = GetOrganizerId();
+        if (!organizerId.HasValue)
+        {
+            return Forbid();
+        }
+
+        var events = await organizerEventService.GetOwnEventsAsync(organizerId.Value, cancellationToken);
+        return Ok(events.Select(ToDto).ToList());
+    }
+
     /// <summary>
-    /// Creates an event for the supplied organizer. OrganizerId is a query parameter until authentication is implemented.
+    /// Creates an event for the authenticated organizer.
     /// </summary>
     [HttpPost]
+    [Authorize(Policy = "Organizer")]
+    [EnableRateLimiting("Organizer")]
     [ProducesResponseType(typeof(SportEventDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     public async Task<ActionResult<SportEventDto>> Create(
-        [FromQuery] Guid organizerId,
         [FromBody] CreateSportEventDto request,
         CancellationToken cancellationToken)
     {
-        if (organizerId == Guid.Empty)
+        var organizerId = GetOrganizerId();
+        if (!organizerId.HasValue)
         {
-            return BadRequest();
+            return Forbid();
         }
 
         try
         {
             var sportEvent = await organizerEventService.CreateAsync(
-                organizerId,
+                organizerId.Value,
                 ToEntity(request),
                 cancellationToken);
             var response = ToDto(sportEvent);
@@ -175,9 +206,11 @@ public sealed class SportEventController(
     }
 
     /// <summary>
-    /// Replaces an event's editable fields. OrganizerId is a query parameter until authentication is implemented.
+    /// Replaces an event's editable fields for the authenticated organizer.
     /// </summary>
     [HttpPut("{id:guid}")]
+    [Authorize(Policy = "Organizer")]
+    [EnableRateLimiting("Organizer")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -185,19 +218,24 @@ public sealed class SportEventController(
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> Update(
         Guid id,
-        [FromQuery] Guid organizerId,
         [FromBody] UpdateSportEventDto request,
         CancellationToken cancellationToken)
     {
-        if (id == Guid.Empty || organizerId == Guid.Empty)
+        var organizerId = GetOrganizerId();
+        if (id == Guid.Empty)
         {
             return BadRequest();
+        }
+
+        if (!organizerId.HasValue)
+        {
+            return Forbid();
         }
 
         try
         {
             var sportEvent = await organizerEventService.UpdateAsync(
-                organizerId,
+                organizerId.Value,
                 id,
                 ToEntity(request),
                 cancellationToken);
@@ -223,21 +261,35 @@ public sealed class SportEventController(
 
     /// <summary>Deletes an event owned by the supplied organizer.</summary>
     [HttpDelete("{id:guid}")]
+    [Authorize(Policy = "Organizer")]
+    [EnableRateLimiting("Organizer")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(
         Guid id,
-        [FromQuery] Guid organizerId,
         CancellationToken cancellationToken)
     {
-        if (id == Guid.Empty || organizerId == Guid.Empty)
+        var organizerId = GetOrganizerId();
+        if (id == Guid.Empty)
         {
             return BadRequest();
         }
 
-        var deleted = await organizerEventService.DeleteAsync(organizerId, id, cancellationToken);
+        if (!organizerId.HasValue)
+        {
+            return Forbid();
+        }
+
+        var deleted = await organizerEventService.DeleteAsync(organizerId.Value, id, cancellationToken);
         return deleted ? NoContent() : NotFound();
+    }
+
+    private Guid? GetOrganizerId()
+    {
+        return Guid.TryParse(User.FindFirstValue("organizer_id"), out var organizerId)
+            ? organizerId
+            : null;
     }
 
     private static SportEvent ToEntity(CreateSportEventDto request)

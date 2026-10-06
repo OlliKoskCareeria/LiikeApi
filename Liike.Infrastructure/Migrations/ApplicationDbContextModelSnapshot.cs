@@ -170,12 +170,52 @@ namespace Liike.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Liike.Domain.UserAccount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)");
+
+                    b.Property<bool>("MustChangePassword")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("NormalizedEmail")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)");
+
+                    b.Property<Guid?>("OrganizerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PasswordHash")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .IsUnique();
+
+                    b.HasIndex("OrganizerId")
+                        .IsUnique();
+
+                    b.ToTable("UserAccounts", (string)null);
+                });
+
             modelBuilder.Entity("Liike.Domain.SportEvent", b =>
                 {
                     b.HasOne("Liike.Domain.Organizer", "Organizer")
                         .WithMany("Events")
                         .HasForeignKey("OrganizerId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Organizer");
@@ -190,6 +230,16 @@ namespace Liike.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("SportEvent");
+                });
+
+            modelBuilder.Entity("Liike.Domain.UserAccount", b =>
+                {
+                    b.HasOne("Liike.Domain.Organizer", "Organizer")
+                        .WithOne()
+                        .HasForeignKey("Liike.Domain.UserAccount", "OrganizerId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Organizer");
                 });
 
             modelBuilder.Entity("Liike.Domain.Organizer", b =>

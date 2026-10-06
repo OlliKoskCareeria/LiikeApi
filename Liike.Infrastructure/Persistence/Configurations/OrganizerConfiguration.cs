@@ -33,6 +33,6 @@ public sealed class OrganizerConfiguration : IEntityTypeConfiguration<Organizer>
             .WithOne(sportEvent => sportEvent.Organizer)
             .HasForeignKey(sportEvent => sportEvent.OrganizerId)
             .IsRequired()
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

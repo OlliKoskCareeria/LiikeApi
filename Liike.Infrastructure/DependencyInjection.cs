@@ -1,6 +1,9 @@
 using Liike.Application.Services;
 using Liike.Infrastructure.Persistence;
+using Liike.Infrastructure.Security;
 using Liike.Infrastructure.Services;
+using Liike.Domain;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +25,12 @@ public static class DependencyInjection
         }
 
         services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
+        services.AddOptions<JwtOptions>()
+            .Bind(configuration.GetSection(JwtOptions.SectionName))
+            .Validate(options => options.IsValid(), "JWT issuer, audience, signing key, and lifetime must be configured.")
+            .ValidateOnStart();
+        services.AddScoped<IPasswordHasher<UserAccount>, PasswordHasher<UserAccount>>();
+        services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddHttpClient<NominatimGeocodingService>(client =>
         {
             client.Timeout = TimeSpan.FromSeconds(10);
