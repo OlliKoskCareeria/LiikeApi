@@ -33,6 +33,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddControllers();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("NetlifyFrontend", policy =>
+        policy.WithOrigins("https://liikeapp.netlify.app")
+              .AllowAnyHeader()
+              .AllowAnyMethod());
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -193,6 +200,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
+app.UseCors("NetlifyFrontend");
 app.UseAuthentication();
 app.UseRateLimiter();
 app.UseAuthorization();
