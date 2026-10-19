@@ -25,9 +25,9 @@ public sealed class SportEventController(
     [HttpGet("all")]
     [AllowAnonymous]
     [EnableRateLimiting("PublicSearch")]
-    [ProducesResponseType(typeof(IReadOnlyList<SportEventDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IReadOnlyList<PublicSportEventDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<IReadOnlyList<SportEventDto>>> GetAllPublishedWithoutFilters(
+    public async Task<ActionResult<IReadOnlyList<PublicSportEventDto>>> GetAllPublishedWithoutFilters(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
@@ -39,7 +39,7 @@ public sealed class SportEventController(
                 pageSize: pageSize,
                 cancellationToken: cancellationToken);
 
-            return Ok(events.Select(ToDto).ToList());
+            return Ok(events.Select(ToPublicDto).ToList());
         }
         catch (ArgumentException)
         {
@@ -51,9 +51,9 @@ public sealed class SportEventController(
     [HttpGet]
     [AllowAnonymous]
     [EnableRateLimiting("PublicSearch")]
-    [ProducesResponseType(typeof(IReadOnlyList<SportEventDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IReadOnlyList<PublicSportEventDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<IReadOnlyList<SportEventDto>>> GetAllPublished(
+    public async Task<ActionResult<IReadOnlyList<PublicSportEventDto>>> GetAllPublished(
         [FromQuery] string? municipality,
         [FromQuery] SportCategory? category,
         [FromQuery] decimal? minimumPrice,
@@ -77,7 +77,7 @@ public sealed class SportEventController(
                 pageSize,
                 cancellationToken);
 
-            return Ok(events.Select(ToDto).ToList());
+            return Ok(events.Select(ToPublicDto).ToList());
         }
         catch (ArgumentException)
         {
@@ -107,7 +107,7 @@ public sealed class SportEventController(
 
             return Ok(events.Select(result => new NearbySportEventDto
             {
-                Event = ToDto(result.Event),
+                Event = ToPublicDto(result.Event),
                 DistanceKilometers = result.DistanceKilometers
             }).ToList());
         }
@@ -121,10 +121,10 @@ public sealed class SportEventController(
     [HttpGet("{id:guid}")]
     [AllowAnonymous]
     [EnableRateLimiting("PublicSearch")]
-    [ProducesResponseType(typeof(SportEventDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PublicSportEventDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<SportEventDto>> GetById(Guid id, CancellationToken cancellationToken)
+    public async Task<ActionResult<PublicSportEventDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
         if (id == Guid.Empty)
         {
@@ -132,7 +132,7 @@ public sealed class SportEventController(
         }
 
         var sportEvent = await publicEventService.GetPublishedByIdAsync(id, cancellationToken);
-        return sportEvent is null ? NotFound() : Ok(ToDto(sportEvent));
+        return sportEvent is null ? NotFound() : Ok(ToPublicDto(sportEvent));
     }
 
     /// <summary>Gets events owned by the authenticated organizer.</summary>
@@ -345,6 +345,35 @@ public sealed class SportEventController(
         {
             Id = sportEvent.Id,
             OrganizerId = sportEvent.OrganizerId,
+            OrganizerName = sportEvent.Organizer?.Name ?? string.Empty,
+            OrganizerType = sportEvent.Organizer?.Type ?? OrganizerType.Unspecified,
+            Title = sportEvent.Title,
+            Description = sportEvent.Description,
+            Sport = sportEvent.Sport,
+            Category = sportEvent.Category,
+            Tags = sportEvent.Tags.Select(tag => tag.Tag).ToArray(),
+            StartTime = sportEvent.StartTime,
+            EndTime = sportEvent.EndTime,
+            IsRecurring = sportEvent.IsRecurring,
+            IsPublished = sportEvent.IsPublished,
+            Municipality = sportEvent.Municipality,
+            Address = sportEvent.Address,
+            Latitude = sportEvent.Latitude,
+            Longitude = sportEvent.Longitude,
+            Price = sportEvent.Price,
+            PriceDescription = sportEvent.PriceDescription,
+            RegistrationInfo = sportEvent.RegistrationInfo,
+            EquipmentInfo = sportEvent.EquipmentInfo,
+            ArrivalInfo = sportEvent.ArrivalInfo,
+            AdditionalInfo = sportEvent.AdditionalInfo
+        };
+    }
+
+    private static PublicSportEventDto ToPublicDto(SportEvent sportEvent)
+    {
+        return new PublicSportEventDto
+        {
+            Id = sportEvent.Id,
             OrganizerName = sportEvent.Organizer?.Name ?? string.Empty,
             OrganizerType = sportEvent.Organizer?.Type ?? OrganizerType.Unspecified,
             Title = sportEvent.Title,
