@@ -16,7 +16,13 @@ All API paths are under `/api`. Send and receive JSON (`Content-Type: applicatio
 
 ### Browser CORS note
 
-The backend currently does not register CORS. A browser frontend hosted on a different origin will be blocked from calling it until the backend deployment adds an appropriate CORS policy for the frontend origin, or the frontend uses a same-origin reverse proxy. CORS is not an authentication mechanism.
+The backend's `NetlifyFrontend` CORS policy allows browser requests only from this frontend origin:
+
+```text
+https://liikeapp.netlify.app
+```
+
+The policy allows any HTTP method and request header, but does not enable cross-origin credentials. Send the JWT in the `Authorization: Bearer <accessToken>` header; cookie-based authentication with `credentials: "include"` is not supported by this policy. Localhost, preview, and other frontend origins are not allowed unless the backend CORS policy is changed. CORS is not an authentication mechanism.
 
 ## 2. Authentication
 
