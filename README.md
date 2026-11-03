@@ -9,6 +9,8 @@ Liike is an ASP.NET Core API for publishing and managing local sport events. Pub
 - JWT bearer authentication and ASP.NET Core password hashing
 - Nominatim (OpenStreetMap) for event-address geocoding
 - Layered solution: `Liike` (API), `Liike.Application`, `Liike.Domain`, and `Liike.Infrastructure`
+- Development: The application was primarily written with GitHub Copilot, an AI coding agent.
+.
 
 ## Run locally
 

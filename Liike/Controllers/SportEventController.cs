@@ -88,7 +88,7 @@ public sealed class SportEventController(
     /// <summary>Gets published events ordered by distance from the supplied coordinates.</summary>
     [HttpGet("nearby")]
     [AllowAnonymous]
-    [EnableRateLimiting("PublicSearch")]
+    [EnableRateLimiting("NearbySearch")]
     [ProducesResponseType(typeof(IReadOnlyList<NearbySportEventDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<IReadOnlyList<NearbySportEventDto>>> GetNearbyPublished(
